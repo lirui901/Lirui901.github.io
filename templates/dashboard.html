@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>班级管理系统</title>
+    <style>
+        /* 复制之前班级管理系统的完整样式，此处略去，实际使用时请将样式粘贴在此 */
+        /* 可从之前的 Node.js 版本中复制所有样式，为了简洁，此处用注释代替 */
+    </style>
+</head>
+<body>
+    <div class="app-card">
+        <div class="header">
+            <h1>📁 班级管理系统 <span id="welcomeUser"></span></h1>
+            <div class="file-controls">
+                <button class="file-btn" onclick="logout()">🚪 退出登录</button>
+            </div>
+        </div>
+
+        <div class="main">
+            <!-- 左侧班级列表 -->
+            <div class="classes-panel">
+                <div class="panel-header">
+                    <h2>📌 班级列表</h2>
+                    <button id="addClassBtn" title="新建班级">+</button>
+                </div>
+                <ul id="classList"></ul>
+            </div>
+
+            <!-- 右侧学生管理 -->
+            <div class="students-panel">
+                <div class="students-header">
+                    <h2>👥 学生名单</h2>
+                    <span id="currentClassName">未选中班级</span>
+                </div>
+
+                <div class="student-form">
+                    <input type="text" id="studentName" placeholder="学生姓名">
+                    <input type="number" id="studentAge" placeholder="年龄">
+                    <button id="addStudentBtn">➕ 添加学生</button>
+                    <button id="cancelEditBtn" style="display: none;">✖ 取消</button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>姓名</th><th>年龄</th><th>操作</th></tr></thead>
+                        <tbody id="studentsTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let classes = [];
+        let selectedClassId = null;
+        let editStudentId = null;
+
+        // 工具函数：转义 HTML
+        function escapeHtml(text) {
+            return String(text).replace(/[&<>"]/g, function(c) {
+                if(c === '&') return '&amp;';
+                if(c === '<') return '&lt;';
+                if(c === '>') return '&gt;';
+                if(c === '"') return '&quot;';
+                return c;
+            });
+        }
+
+        // 加载班级列表
+        async function loadClasses() {
+            const res = await fetch('/api/classes');
+            if (res.ok) {
+                classes = await res.json();
+                renderClasses();
+            }
+        }
+
+        function renderClasses() {
+            const list = document.getElementById('classList');
+            list.innerHTML = '';
+            classes.forEach(cls => {
+                const li = document.createElement('li');
+                li.className = 'class-item' + (selectedClassId === cls.id ? ' active' : '');
+                li.dataset.classId = cls.id;
+                li.innerHTML = `
+                    <span class="class-name">${escapeHtml(cls.name)}</span>
+                    <span class="class-actions">
+                        <button class="edit-class-btn" data-action="editClass" data-class-id="${cls.id}">✏️</button>
+                        <button class="delete-class-btn" data-action="deleteClass" data-class-id="${cls.id}">🗑️</button>
+                    </span>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // 加载学生
+        async function loadStudents(classId) {
+            const res = await fetch(`/api/classes/${classId}/students`);
+            if (res.ok) {
+                const students = await res.json();
+                renderStudents(students);
+            }
+        }
+
+        function renderStudents(students) {
+            const tbody = document.getElementById('studentsTbody');
+            if (students.length === 0) {
+                tbody.innerHTML = `<tr class="empty-row"><td colspan="3">暂无学生，请添加</td></tr>`;
+                return;
+            }
+            let html = '';
+            students.forEach(s => {
+                html += `
+                    <tr data-student-id="${s.id}">
+                        <td>${escapeHtml(s.name)}</td>
+                        <td>${s.age}</td>
+                        <td class="student-actions">
+                            <button class="edit-student-btn" data-action="editStudent" data-student-id="${s.id}">✎ 编辑</button>
+                            <button class="delete-student-btn" data-action="deleteStudent" data-student-id="${s.id}">✕ 删除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // 添加班级
+        document.getElementById('addClassBtn').addEventListener('click', async () => {
+            const name = prompt('输入班级名称');
+            if (!name) return;
+            const res = await fetch('/api/classes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            if (res.ok) {
+                const newClass = await res.json();
+                classes.push(newClass);
+                selectedClassId = newClass.id;
+                renderClasses();
+                loadStudents(selectedClassId);
+            }
+        });
+
+        // 班级列表点击事件
+        document.getElementById('classList').addEventListener('click', async (e) => {
+            const btn = e.target.closest('button');
+            if (btn) {
+                e.stopPropagation();
+                const action = btn.dataset.action;
+                const classId = btn.dataset.classId;
+                if (action === 'editClass') {
+                    const newName = prompt('新班级名称');
+                    if (newName) {
+                        const res = await fetch(`/api/classes/${classId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: newName })
+                        });
+                        if (res.ok) loadClasses();
+                    }
+                } else if (action === 'deleteClass') {
+                    if (confirm('确定删除？')) {
+                        const res = await fetch(`/api/classes/${classId}`, { method: 'DELETE' });
+                        if (res.ok) {
+                            classes = classes.filter(c => c.id != classId);
+                            if (selectedClassId == classId) selectedClassId = classes.length ? classes[0].id : null;
+                            renderClasses();
+                            if (selectedClassId) loadStudents(selectedClassId);
+                        }
+                    }
+                }
+                return;
+            }
+            const li = e.target.closest('.class-item');
+            if (li) {
+                selectedClassId = li.dataset.classId;
+                renderClasses();
+                loadStudents(selectedClassId);
+            }
+        });
+
+        // 添加学生
+        document.getElementById('addStudentBtn').addEventListener('click', async () => {
+            if (!selectedClassId) return alert('请先选择班级');
+            const name = document.getElementById('studentName').value;
+            const age = document.getElementById('studentAge').value;
+            if (!name || !age) return alert('请填写姓名和年龄');
+            const res = await fetch(`/api/classes/${selectedClassId}/students`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, age })
+            });
+            if (res.ok) {
+                document.getElementById('studentName').value = '';
+                document.getElementById('studentAge').value = '';
+                loadStudents(selectedClassId);
+            }
+        });
+
+        // 学生表格编辑/删除
+        document.getElementById('studentsTbody').addEventListener('click', async (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const studentId = btn.dataset.studentId;
+            if (action === 'editStudent') {
+                const row = btn.closest('tr');
+                const name = row.cells[0].innerText;
+                const age = row.cells[1].innerText;
+                document.getElementById('studentName').value = name;
+                document.getElementById('studentAge').value = age;
+                editStudentId = studentId;
+                document.getElementById('addStudentBtn').textContent = '🔄 更新学生';
+                document.getElementById('cancelEditBtn').style.display = 'inline-block';
+            } else if (action === 'deleteStudent') {
+                if (confirm('确定删除？')) {
+                    const res = await fetch(`/api/students/${studentId}`, { method: 'DELETE' });
+                    if (res.ok) loadStudents(selectedClassId);
+                }
+            }
+        });
+
+        // 更新学生
+        document.getElementById('addStudentBtn').addEventListener('click', async (e) => {
+            if (editStudentId) {
+                e.preventDefault();
+                const name = document.getElementById('studentName').value;
+                const age = document.getElementById('studentAge').value;
+                const res = await fetch(`/api/students/${editStudentId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, age })
+                });
+                if (res.ok) {
+                    document.getElementById('studentName').value = '';
+                    document.getElementById('studentAge').value = '';
+                    editStudentId = null;
+                    document.getElementById('addStudentBtn').textContent = '➕ 添加学生';
+                    document.getElementById('cancelEditBtn').style.display = 'none';
+                    loadStudents(selectedClassId);
+                }
+            }
+        });
+
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentAge').value = '';
+            editStudentId = null;
+            document.getElementById('addStudentBtn').textContent = '➕ 添加学生';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        });
+
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = "{{ url_for('login') }}";
+        }
+
+        // 初始化
+        loadClasses();
+    </script>
+</body>
+</html>

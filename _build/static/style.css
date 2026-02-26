@@ -1,0 +1,384 @@
+/* ========== 班级管理系统全局样式 ========== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+}
+
+body {
+    background: #eef2f6;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.app-card {
+    max-width: 1300px;
+    width: 100%;
+    background: white;
+    border-radius: 2.2rem;
+    box-shadow: 0 30px 50px rgba(0, 20, 30, 0.12);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ========== 头部区域 ========== */
+.header {
+    background: #ffffffdd;
+    padding: 1.5rem 2.2rem;
+    border-bottom: 2px solid #dde7f0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.8rem;
+}
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #0b2b44;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+#welcomeUser {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #1e3a5f;
+    background: #e1eaf2;
+    padding: 0.2rem 1rem;
+    border-radius: 30px;
+}
+
+.file-controls {
+    margin-left: auto;
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.file-btn {
+    background: #f0f4fa;
+    border: 1px solid #bacddc;
+    padding: 0.6rem 1.4rem;
+    border-radius: 40px;
+    font-weight: 500;
+    color: #1e3a5f;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+}
+
+.file-btn:hover {
+    background: #e1eaf2;
+    border-color: #7e9ec0;
+}
+
+#fileNameDisplay {
+    font-size: 0.9rem;
+    color: #3b5f7a;
+    background: #eaf1f9;
+    padding: 0.3rem 1.2rem;
+    border-radius: 30px;
+    border: 1px dashed #7c9ec0;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ========== 主内容区域：班级面板 + 学生面板 ========== */
+.main {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 0;
+    background: #f8fafd;
+}
+
+/* ----- 左侧班级面板 ----- */
+.classes-panel {
+    background: #f2f6fb;
+    padding: 1.8rem 1.2rem;
+    border-right: 2px solid #dde3ec;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
+}
+
+.panel-header h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #0f2c41;
+}
+
+#addClassBtn {
+    width: 38px;
+    height: 38px;
+    border-radius: 40px;
+    background: #2d4b6e;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(0, 40, 70, 0.15);
+    transition: 0.1s;
+    line-height: 1;
+}
+
+#addClassBtn:hover {
+    background: #1e3a5f;
+    transform: scale(1.02);
+}
+
+#classList {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.class-item {
+    background: white;
+    border-radius: 14px;
+    padding: 0.7rem 1rem 0.7rem 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #cbd9e8;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    transition: 0.1s;
+}
+
+.class-item:hover {
+    background: #ecf3fa;
+    border-color: #8fb0d0;
+}
+
+.class-item.active {
+    background: #d9e9ff;
+    border-left: 5px solid #1e6dc7;
+    border-radius: 14px 8px 8px 14px;
+}
+
+.class-name {
+    font-weight: 500;
+    color: #142e44;
+    word-break: break-word;
+    flex: 1;
+}
+
+.class-actions {
+    display: flex;
+    gap: 0.2rem;
+    flex-shrink: 0;
+}
+
+.class-actions button {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #365f7e;
+    transition: 0.1s;
+}
+
+.class-actions button:hover {
+    background: #ffffffb3;
+}
+
+.edit-class-btn:hover {
+    color: #0f6bff;
+}
+
+.delete-class-btn:hover {
+    color: #c5221f;
+}
+
+/* ----- 右侧学生面板 ----- */
+.students-panel {
+    padding: 1.8rem 2rem;
+}
+
+.students-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.students-header h2 {
+    font-size: 1.4rem;
+    color: #0f2c41;
+}
+
+#currentClassName {
+    background: #cbdded;
+    color: #113355;
+    padding: 0.3rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 500;
+}
+
+/* 学生表单 */
+.student-form {
+    background: white;
+    padding: 1.3rem;
+    border-radius: 1.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+    border: 1px solid #d1e0ee;
+    align-items: center;
+}
+
+.student-form input {
+    flex: 1 1 160px;
+    padding: 0.7rem 1.2rem;
+    border: 1px solid #c1d5e8;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    background: #fcfdff;
+    outline: none;
+}
+
+.student-form input:focus {
+    border-color: #1e6dc7;
+    box-shadow: 0 0 0 3px rgba(30, 109, 199, 0.15);
+}
+
+.student-form button {
+    background: #2b4f73;
+    border: none;
+    color: white;
+    padding: 0.7rem 1.6rem;
+    border-radius: 40px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #1e3f5b;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    transition: 0.15s;
+}
+
+.student-form button#cancelEditBtn {
+    background: #6c86a3;
+    border-color: #4d6278;
+}
+
+.student-form button:hover {
+    background: #1e3f5b;
+}
+
+/* 学生表格 */
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 1.4rem;
+    background: white;
+    border: 1px solid #d7e3f0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 380px;
+}
+
+th {
+    background: #eaf1fa;
+    color: #1f3d5a;
+    font-weight: 600;
+    padding: 1rem 1.2rem;
+    text-align: left;
+}
+
+td {
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid #e2ecf9;
+    color: #142e44;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* 学生操作按钮 */
+.student-actions button {
+    background: none;
+    border: none;
+    padding: 0.3rem 1rem;
+    border-radius: 40px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.1s;
+}
+
+.edit-student-btn {
+    background: #e5ecf5;
+    color: #1e5ba6;
+    margin-right: 0.4rem;
+}
+
+.edit-student-btn:hover {
+    background: #cddef5;
+}
+
+.delete-student-btn {
+    background: #ffe8e8;
+    color: #a51d1d;
+}
+
+.delete-student-btn:hover {
+    background: #ffcece;
+}
+
+.empty-row td {
+    text-align: center;
+    color: #6f8aac;
+    padding: 2rem;
+    font-style: italic;
+}
+
+/* 底部提示 */
+.footer-note {
+    padding: 1rem 2rem 1.5rem;
+    background: #f5faff;
+    color: #375e82;
+    border-top: 2px solid #d7e3f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+
+/* 辅助类 */
+.hidden {
+    display: none;
+}

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录 - 班级管理系统</title>
+    <style>
+        body { font-family: Arial; background: #f0f4f8; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 300px; }
+        input { width: 100%; padding: 0.7rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 8px; }
+        button { width: 100%; padding: 0.7rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        .switch { text-align: center; margin-top: 1rem; }
+        .error { color: red; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>登录</h2>
+        <div id="errorMsg" class="error"></div>
+        <input type="text" id="username" placeholder="用户名">
+        <input type="password" id="password" placeholder="密码">
+        <button onclick="login()">登录</button>
+        <div class="switch">还没有账号？ <a href="/Lirui901.github.io/register">立即注册</a></div>
+    </div>
+
+    <script>
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                window.location.href = "/Lirui901.github.io/dashboard";
+            } else {
+                document.getElementById('errorMsg').innerText = data.error;
+            }
+        }
+    </script>
+</body>
+</html>
