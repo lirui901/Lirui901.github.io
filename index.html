@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Music Grid · Click to Play</title>
+    <style>
+        /* --- reset & base --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0d0f14;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            padding: 2rem 1.5rem;
+            color: #e8edf5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        /* --- header --- */
+        .header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #2a2f3a;
+            padding-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+        }
+
+        .header h1 {
+            font-weight: 500;
+            font-size: 1.8rem;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #b7c9e2, #7f96b3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .meta {
+            font-size: 0.85rem;
+            color: #7a849b;
+            background: #1a1e26;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            border: 1px solid #2c3240;
+        }
+
+        /* --- global player --- */
+        .player-bar {
+            background: #151b23;
+            border-radius: 18px;
+            padding: 0.9rem 1.6rem 1.1rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid #252c38;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+        }
+
+        .player-row {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .player-row .track-name {
+            font-weight: 450;
+            font-size: 1.05rem;
+            color: #d6dfed;
+            min-width: 140px;
+            flex: 1 1 180px;
+        }
+
+        .player-row .track-name .empty-hint {
+            color: #4d5a6f;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .player-controls button {
+            background: #252e3d;
+            border: none;
+            color: #c8d2e3;
+            font-size: 1.3rem;
+            width: 38px;
+            height: 38px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-controls button:hover {
+            background: #36475f;
+        }
+
+        .progress-container {
+            flex: 2 1 260px;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            min-width: 140px;
+        }
+
+        .progress-container input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 10px;
+            background: #2a3343;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .progress-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #9bb0d0;
+            border: 2px solid #151b23;
+            cursor: pointer;
+        }
+
+        .progress-container input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #9bb0d0;
+            border: 2px solid #151b23;
+            cursor: pointer;
+        }
+
+        .time-display {
+            font-size: 0.8rem;
+            color: #7a849b;
+            min-width: 85px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* --- grid --- */
+        .song-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 1.2rem;
+        }
+
+        /* --- each song card --- */
+        .song-slot {
+            background: #151b23;
+            border-radius: 16px;
+            padding: 0.9rem 0.9rem 0.7rem;
+            border: 1px solid #252c38;
+            transition: border-color 0.2s, background 0.2s, transform 0.1s;
+            display: flex;
+            flex-direction: column;
+            min-height: 80px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .song-slot:hover {
+            border-color: #4a5a72;
+            background: #1b222c;
+            transform: scale(1.01);
+        }
+
+        .song-slot a {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 450;
+            color: #c8d2e3;
+            text-decoration: none;
+            padding: 0.2rem 0.1rem;
+            border-radius: 4px;
+            word-break: break-word;
+            line-height: 1.4;
+            pointer-events: none;  /* we handle click on the .song-slot */
+        }
+
+        .slot-meta {
+            margin-top: 0.4rem;
+            font-size: 0.6rem;
+            color: #4d5a6f;
+            letter-spacing: 0.3px;
+            border-top: 1px dashed #232b37;
+            padding-top: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .footer-note {
+            margin-top: 3rem;
+            font-size: 0.75rem;
+            color: #3f485c;
+            border-top: 1px solid #1f2631;
+            padding-top: 1.5rem;
+            width: 100%;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.4rem; }
+            .song-grid { gap: 0.9rem; }
+            .player-row { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+            .progress-container { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- header -->
+    <div class="header">
+        <h1>♫ · click · play · progress</h1>
+        <span class="meta">30 slots · each &lt;a&gt; needs data-src</span>
+    </div>
+
+    <!-- ========== GLOBAL PLAYER ========== -->
+    <div class="player-bar" id="globalPlayer">
+        <div class="player-row">
+            <div class="track-name" id="currentTrackName">
+                <span class="empty-hint">no track selected</span>
+            </div>
+            <div class="player-controls">
+                <button id="playPauseBtn" title="Play / Pause">▶</button>
+            </div>
+            <div class="progress-container">
+                <input type="range" id="progressSlider" value="0" min="0" max="1000" step="1" />
+                <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+            </div>
+        </div>
+        <!-- hidden audio element -->
+        <audio id="audioPlayer" style="display:none;"></audio>
+    </div>
+
+    <!-- ========== GRID: 30 SLOTS ========== -->
+    <div class="song-grid" id="songGrid">
+
+        <!-- ========================================== -->
+        <!--  IMPORTANT: fill data-src with your audio   -->
+        <!--  Example: data-src="https://example.com/song.mp3" -->
+        <!-- ========================================== -->
+
+        <div class="song-slot" data-src="T01.flac"><a href="#">Close Eyes By DVRST</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="T02.mp3"><a href="#">FUNKED UP By ISQ</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="T03.flac"><a href="#">Sea Of Problems</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="T04.mp3"><a href="#">HEAVENLY JUMPSTYLE</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="T05.mp3"><a href="#">METAMORPHOSIS</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="TOP.mp3"><a href="#">Tired Of Problems</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="T06.mp3"><a href="#">X-COOL "LOUD ONE"</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="T07.flac"><a href="#">MURDER IN MY MIND</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="T08.mp3"><a href="#">POOR</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="DF01.mp3"><a href="#">DeltaForceChina</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="T09.mp3"><a href="#">Passion "SPED UP"</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_13</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_14</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_15</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_16</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_17</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_18</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_19</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_20</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_21</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_22</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_23</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_24</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_25</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_26</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_27</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_28</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_29</a><div class="slot-meta">—</div></div>
+        <div class="song-slot" data-src="#"><a href="#">track_30</a><div class="slot-meta">—</div></div>
+
+    </div>
+
+    <div class="footer-note">
+        click any card · audio loads &amp; plays · progress bar updates live
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT: click to play + progress bar                     -->
+<!-- ============================================================ -->
+<script>
+    (function() {
+        // ----- elements -----
+        const audio = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playPauseBtn');
+        const progressSlider = document.getElementById('progressSlider');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const trackNameEl = document.getElementById('currentTrackName');
+
+        let currentSrc = null;        // track url
+        let isUserSeeking = false;
+
+        // ----- helpers -----
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return m + ':' + (s < 10 ? '0' : '') + s;
+        }
+
+        function updateTimeDisplay() {
+            if (audio.duration) {
+                const current = audio.currentTime || 0;
+                const total = audio.duration || 0;
+                timeDisplay.textContent = formatTime(current) + ' / ' + formatTime(total);
+                if (!isUserSeeking) {
+                    const val = (current / total) * 1000;
+                    progressSlider.value = Math.min(val, 1000);
+                }
+            } else {
+                timeDisplay.textContent = '0:00 / 0:00';
+            }
+        }
+
+        // load & play a track
+        function loadAndPlay(src, displayName) {
+            if (!src || src === '#') {
+                // if no valid src, reset
+                audio.pause();
+                audio.src = '';
+                currentSrc = null;
+                trackNameEl.innerHTML = '<span class="empty-hint">no track selected</span>';
+                playBtn.textContent = '▶';
+                timeDisplay.textContent = '0:00 / 0:00';
+                progressSlider.value = 0;
+                return;
+            }
+
+            // if same track, just toggle play
+            if (currentSrc === src && !audio.paused) {
+                // if already playing, do nothing (or you could pause)
+                return;
+            }
+
+            // load new track
+            audio.src = src;
+            audio.load();
+            audio.play().catch(err => {
+                // autoplay may be blocked; user will click play
+                console.warn('autoplay blocked, click play to start');
+            });
+            currentSrc = src;
+            trackNameEl.textContent = displayName || 'track';
+            playBtn.textContent = '⏸';
+        }
+
+        // toggle play/pause
+        function togglePlay() {
+            if (!audio.src || audio.src === '') {
+                // optionally pick first track? but we do nothing.
+                return;
+            }
+            if (audio.paused) {
+                audio.play().catch(() => {});
+                playBtn.textContent = '⏸';
+            } else {
+                audio.pause();
+                playBtn.textContent = '▶';
+            }
+        }
+
+        // ----- event: click on song slot -----
+        document.querySelectorAll('.song-slot').forEach(slot => {
+            slot.addEventListener('click', function(e) {
+                // if click inside <a> or slot itself, we get the data-src from slot
+                const src = this.getAttribute('data-src');
+                // get display name from the <a> inside
+                const link = this.querySelector('a');
+                const displayName = link ? link.textContent.trim() : 'track';
+                loadAndPlay(src, displayName);
+            });
+        });
+
+        // ----- play/pause button -----
+        playBtn.addEventListener('click', togglePlay);
+
+        // ----- progress slider (seeking) -----
+        progressSlider.addEventListener('mousedown', function() {
+            isUserSeeking = true;
+        });
+        progressSlider.addEventListener('mouseup', function() {
+            isUserSeeking = false;
+            if (audio.duration) {
+                const seekTime = (this.value / 1000) * audio.duration;
+                audio.currentTime = seekTime;
+            }
+        });
+        progressSlider.addEventListener('input', function() {
+            if (audio.duration) {
+                const seekTime = (this.value / 1000) * audio.duration;
+                // update display during drag
+                const current = seekTime;
+                const total = audio.duration;
+                timeDisplay.textContent = formatTime(current) + ' / ' + formatTime(total);
+            }
+        });
+
+        // ----- audio events -----
+        audio.addEventListener('timeupdate', updateTimeDisplay);
+
+        audio.addEventListener('loadedmetadata', function() {
+            // reset slider range when new track loaded
+            progressSlider.value = 0;
+            updateTimeDisplay();
+        });
+
+        audio.addEventListener('ended', function() {
+            playBtn.textContent = '▶';
+            progressSlider.value = 0;
+            timeDisplay.textContent = formatTime(0) + ' / ' + formatTime(audio.duration || 0);
+        });
+
+        audio.addEventListener('play', function() {
+            playBtn.textContent = '⏸';
+        });
+        audio.addEventListener('pause', function() {
+            playBtn.textContent = '▶';
+        });
+
+        // handle errors (e.g. 404)
+        audio.addEventListener('error', function(e) {
+            console.warn('audio error', e);
+            trackNameEl.innerHTML = '<span style="color:#b57a7a;">⚠️ load error</span>';
+            playBtn.textContent = '▶';
+            timeDisplay.textContent = '0:00 / 0:00';
+        });
+
+        // initial state
+        updateTimeDisplay();
+
+        // expose for debugging
+        window.__audio = audio;
+
+    })();
+</script>
+
+</body>
+</html>
